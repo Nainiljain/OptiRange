@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# next build
+.next/
+
+# vercel
+.vercel/
+
+# environment
+.env
+
+# logs
+npm-debug.log*
+
+# database
+*.db

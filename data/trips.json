@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "from": "Toronto, ON",
+        "to": "Montreal, QC",
+        "date": "Oct 24, 2026",
+        "status": "Completed",
+        "rangeUsed": "85%"
+    },
+    {
+        "id": 2,
+        "from": "Detroit, MI",
+        "to": "Chicago, IL",
+        "date": "Sep 12, 2026",
+        "status": "Completed",
+        "rangeUsed": "60%"
+    },
+    {
+        "id": 3,
+        "from": "Vancouver, BC",
+        "to": "Seattle, WA",
+        "date": "Aug 05, 2026",
+        "status": "Completed",
+        "rangeUsed": "40%"
+    }
+]

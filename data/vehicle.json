@@ -1,0 +1,34 @@
+[
+    {
+        "id": "v_1",
+        "make": "Chevrolet",
+        "model": "Equinox EV LT",
+        "year": 2026,
+        "base_range_km": 513,
+        "battery_capacity_kwh": 85.0
+    },
+    {
+        "id": "v_2",
+        "make": "Hyundai",
+        "model": "Kona Electric",
+        "year": 2026,
+        "base_range_km": 420,
+        "battery_capacity_kwh": 64.8
+    },
+    {
+        "id": "v_3",
+        "make": "Nissan",
+        "model": "LEAF S+",
+        "year": 2026,
+        "base_range_km": 488,
+        "battery_capacity_kwh": 75.0
+    },
+    {
+        "id": "v_4",
+        "make": "Volkswagen",
+        "model": "ID.4 Pro RWD",
+        "year": 2026,
+        "base_range_km": 468,
+        "battery_capacity_kwh": 77.0
+    }
+]
