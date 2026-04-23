@@ -36,12 +36,20 @@ export default function HomeClient({ user }: { user: any }) {
               </button>
             </form>
           ) : (
-            <Link
-              href="/register"
-              className="text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl transition-all shadow-lg shadow-blue-500/20"
-            >
-              Get Started
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/login"
+                className="text-sm font-bold text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl transition-all shadow-lg shadow-blue-500/20"
+              >
+                Register
+              </Link>
+            </div>
           )}
         </div>
       </motion.nav>

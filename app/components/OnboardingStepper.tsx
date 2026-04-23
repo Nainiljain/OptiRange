@@ -10,7 +10,7 @@ const steps = [
 ] as const
 
 interface OnboardingStepperProps {
-  currentStep: 1 | 2 | 3
+  currentStep: number
 }
 
 export default function OnboardingStepper({ currentStep }: OnboardingStepperProps) {

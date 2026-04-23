@@ -21,6 +21,10 @@ let cachedJWT: string | null = null;
 let jwtFetchedAt  = 0;
 const JWT_TTL_MS  = 6 * 24 * 60 * 60 * 1000; // 6 days (token lasts 7, refresh early)
 
+let nrelCache: any[] | null = null;
+let nrelCacheTime = 0;
+const NREL_CACHE_TTL = 1000 * 60 * 60 * 24; // 1 day
+
 async function getCarAPIJWT(): Promise<string | null> {
   const apiToken  = process.env.CARAPI_API_TOKEN;
   const apiSecret = process.env.CARAPI_API_SECRET;
@@ -141,35 +145,58 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ source: 'static', data: evMakes.map(m => ({ name: m })) });
     }
 
-    const params = new URLSearchParams({
-      api_key: nrelKey,
-      fuel_type: 'ELEC',
-      ...(make  && { make }),
-      ...(model && { model }),
-    });
+    const now = Date.now();
+    let list: any[] = [];
 
-    const res  = await fetch(`${NREL_BASE}?${params}`, { next: { revalidate: 86400 } });
-    const raw  = await res.json();
-    const list: any[] = raw?.result || [];
+    if (nrelCache && now - nrelCacheTime < NREL_CACHE_TTL) {
+      list = nrelCache;
+    } else {
+      const params = new URLSearchParams({
+        api_key: nrelKey,
+        fuel_type: 'ELEC'
+      });
+      // disable next cache to prevent "items over 2MB can not be cached" warning
+      const res = await fetch(`${NREL_BASE}?${params}`, { cache: 'no-store' });
+      const raw = await res.json();
+      list = raw?.result || [];
+      nrelCache = list;
+      nrelCacheTime = now;
+    }
+
+    // copy list before filtering to avoid mutating cache reference
+    let filteredList = [...list];
+
+    if (make) {
+      filteredList = filteredList.filter((v: any) => {
+        const vMake = v.make || v.manufacturer_name;
+        return vMake && vMake.toLowerCase() === make.toLowerCase();
+      });
+    }
+    if (model) {
+      filteredList = filteredList.filter((v: any) => v.model && v.model.toLowerCase() === model.toLowerCase());
+    }
+
+    // Filter out PHEVs (Plug-in Hybrids), keeping only pure EVs
+    filteredList = filteredList.filter((v: any) => v.fuel_code !== 'PHEV' && !v.fuel_name?.includes('Plug-in Hybrid'));
 
     if (action === 'models') {
-      const unique = [...new Set(list.map((v: any) => v.model))].filter(Boolean);
+      const unique = [...new Set(filteredList.map((v: any) => v.model))].filter(Boolean);
       return NextResponse.json({ source: 'nrel', data: unique.map(m => ({ name: m })) });
     }
 
     if (action === 'specs') {
-      const normalised = list.map((v: any) => ({
+      const normalised = filteredList.map((v: any) => ({
         id:                 v.id,
-        year:               v.year || parseInt(year),
-        make:               v.make,
+        year:               v.model_year || v.year || parseInt(year),
+        make:               v.make || v.manufacturer_name || '',
         model:              v.model,
-        trim:               v.category?.trim || '',
-        batteryCapacityKwh: null,
-        rangeKm:            v.range ? Math.round(v.range * 1.60934) : null,
-        rangeMiles:         v.range || null,
-        chargerType:        v.ev_connector_type || null,
-        driveType:          v.category?.drive || null,
-      })).filter((v: any) => v.rangeMiles);
+        trim:               v.category?.trim || v.trim || '',
+        batteryCapacityKwh: v.battery_capacity_kwh ? parseFloat(v.battery_capacity_kwh) : null,
+        rangeKm:            v.electric_range ? Math.round(parseFloat(v.electric_range) * 1.60934) : null,
+        rangeMiles:         v.electric_range ? parseFloat(v.electric_range) : null,
+        chargerType:        v.ev_connector_type || v.charger_type || null,
+        driveType:          v.category?.drive || v.drive_type || null,
+      })).filter((v: any) => v.rangeMiles || v.rangeKm || v.batteryCapacityKwh);
       return NextResponse.json({ source: 'nrel', data: normalised });
     }
 

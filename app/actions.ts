@@ -38,9 +38,18 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   // Block login if account not yet approved by admin
   if (!user.isApproved && !user.isAdmin) {
-    return {
-      error: '⏳ Your account is pending approval. You will receive an email once approved by the OptiRange team.',
-      pending: true,
+    // Catch-22 fix: If there are ZERO admins currently in the database, 
+    // automatically elevate this user to Admin and approve them.
+    const adminCount = await User.countDocuments({ isAdmin: true })
+    if (adminCount === 0) {
+      user.isAdmin = true
+      user.isApproved = true
+      await User.findByIdAndUpdate(user._id, { isAdmin: true, isApproved: true })
+    } else {
+      return {
+        error: '⏳ Your account is pending approval. You will receive an email once approved by the OptiRange team.',
+        pending: true,
+      }
     }
   }
 

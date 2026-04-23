@@ -92,13 +92,16 @@ function EvSetupForm() {
 
   const handleLookupMakeChange = (make: string) => {
     setLookupMake(make); setLookupModel(''); setAutoFilled(false)
+    setFMake(make); setFModel('');
     if (make) fetchModels(make)
   }
 
   const handleLookupModelChange = (model: string) => {
     setLookupModel(model); setAutoFilled(false)
+    setFModel(model);
     if (lookupMake && model) fetchSpecs(lookupMake, model, lookupYear)
   }
+
 
   const applySpec = (spec: any) => {
     setFMake(spec.make || lookupMake)
@@ -186,14 +189,14 @@ function EvSetupForm() {
             {loadingSpecs && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="mt-4 flex items-center gap-2 text-sm text-foreground/50">
-                <Loader2 className="w-4 h-4 animate-spin" /> Fetching EV specs from CarAPI…
+                <Loader2 className="w-4 h-4 animate-spin" /> Fetching battery details…
               </motion.div>
             )}
             {!loadingSpecs && specs.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="mt-4 space-y-2 max-h-44 overflow-y-auto pr-1">
                 <p className="text-xs font-bold text-foreground/50 uppercase tracking-wider mb-2">
-                  {specs.length} trim{specs.length !== 1 ? 's' : ''} found — click to auto-fill
+                  {specs.length} trim{specs.length !== 1 ? 's' : ''} found — click to auto-fill capacity & range
                 </p>
                 {specs.map((spec, i) => (
                   <button key={i} type="button" onClick={() => applySpec(spec)}
@@ -203,7 +206,7 @@ function EvSetupForm() {
                         <p className="font-semibold text-sm">{spec.year} {spec.make} {spec.model} {spec.trim && <span className="text-foreground/50">{spec.trim}</span>}</p>
                         <p className="text-xs text-foreground/40 mt-0.5">
                           {spec.batteryCapacityKwh ? `${spec.batteryCapacityKwh} kWh · ` : ''}
-                          {spec.rangeKm ? `${spec.rangeKm} km range` : spec.rangeMiles ? `${Math.round(spec.rangeMiles * 1.60934)} km range` : 'Range data pending'}
+                          {spec.rangeKm ? `${spec.rangeKm} km base range` : spec.rangeMiles ? `${Math.round(spec.rangeMiles * 1.60934)} km range` : 'Range data pending'}
                           {spec.chargerType ? ` · ${spec.chargerType}` : ''}
                         </p>
                       </div>
@@ -215,16 +218,16 @@ function EvSetupForm() {
             )}
             {!loadingSpecs && lookupMake && lookupModel && specs.length === 0 && (
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="mt-3 text-sm text-foreground/40 italic">
-                No EV specs found — please enter manually below.
+                className="mt-3 text-sm text-amber-500 font-semibold italic">
+                No battery details found — please enter capacity and range below.
               </motion.p>
             )}
           </AnimatePresence>
 
-          {autoFilled && (
+          {autoFilled && !loadingSpecs && (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
               className="mt-3 flex items-center gap-2 text-sm text-emerald-500 font-semibold">
-              <CheckCircle2 className="w-4 h-4" /> Specs auto-filled from CarAPI
+              <CheckCircle2 className="w-4 h-4" /> Specs dynamically filled
             </motion.div>
           )}
         </div>
